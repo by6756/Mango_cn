@@ -1,0 +1,27 @@
+name: Build
+
+on:
+  push:
+    branches: [ master, dev, hotfix/* ]
+  pull_request:
+    branches: [ master, dev ]
+
+jobs:
+  build:
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+
+    runs-on: ubuntu-latest
+    container:
+      image: crystallang/crystal:1.0.0-alpine
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: apk add --no-cache yarn yaml-static sqlite-static libarchive-dev libarchive-static acl-static expat-static zstd-static lz4-static bzip2-static libjpeg-turbo-dev libpng-dev tiff-dev
+    - name: build arm64v8 object file
+      run: make arm64v8 || make arm64v8
+    - name: Upload object files
+      uses: actions/upload-artifact@v2
+      with:
+        name: object files
+        path: ./*.o
